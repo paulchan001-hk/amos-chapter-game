@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>阿摩司伸張正義 · 兒童小遊戲</title>
+<style>
+  :root {
+    --cream: #f7f0e1;
+    --paper: #fff8ec;
+    --ink: #3a2a1c;
+    --brown: #6b3e2e;
+    --terra: #c45c26;
+    --gold: #c4922a;
+    --olive: #3f6b3f;
+    --sky: #5b8fa8;
+    --red: #b24a3a;
+    --line: #e6d3b0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans CJK TC", "WenQuanYi Zen Hei", sans-serif;
+    background: radial-gradient(circle at top, #fff8ec, #efe3cc 70%);
+    color: var(--ink);
+  }
+  .app { max-width: 1100px; margin: 0 auto; min-height: 100%; padding: 18px 16px 28px; }
+  .top {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    font-size: 14px; color: #8a7358; margin-bottom: 10px;
+  }
+  .stars { color: var(--gold); font-weight: 700; letter-spacing: 1px; }
+  h1 { margin: 0 0 6px; color: var(--brown); font-size: clamp(28px, 4vw, 42px); }
+  .sub { margin: 0 0 16px; color: #7a6550; font-size: 16px; }
+  .card {
+    background: var(--paper); border: 1.5px solid var(--line); border-radius: 18px;
+    padding: 18px; box-shadow: 0 8px 24px rgba(58,42,28,.06);
+  }
+  .verse {
+    background: #f3e6c8; border-radius: 14px; padding: 14px 16px; text-align: center;
+    color: var(--brown); font-size: 20px; font-weight: 700; line-height: 1.5;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 14px; }
+  button, .choice {
+    font-family: inherit; border: 0; cursor: pointer; border-radius: 16px;
+    padding: 16px 14px; font-size: 18px; line-height: 1.4; text-align: left;
+    background: #fff; color: var(--ink); border: 2px solid var(--line);
+  }
+  button.primary, .go {
+    background: var(--olive); color: #fff; border-color: var(--olive); font-weight: 700; text-align: center;
+  }
+  button.gold { background: var(--terra); color: #fff; border-color: var(--terra); font-weight: 700; text-align: center; }
+  button:active { transform: translateY(1px); }
+  .scene { font-size: 18px; line-height: 1.55; }
+  .tag {
+    display: inline-block; background: var(--olive); color: #fff; border-radius: 999px;
+    padding: 3px 10px; font-size: 13px; margin-bottom: 8px;
+  }
+  .feedback { margin-top: 12px; min-height: 28px; font-weight: 700; }
+  .ok { color: var(--olive); }
+  .no { color: var(--red); }
+  .scale-wrap { display: flex; justify-content: center; margin: 8px 0 4px; }
+  .scale { width: min(520px, 100%); }
+  .beam {
+    height: 10px; background: #8a6239; border-radius: 8px; position: relative;
+    transform-origin: center; transition: transform .45s ease;
+  }
+  .pan {
+    position: absolute; top: 18px; width: 120px; text-align: center; font-size: 14px;
+  }
+  .pan.left { left: 8px; }
+  .pan.right { right: 8px; }
+  .bowl {
+    height: 18px; border: 4px solid #8a6239; border-top: 0; border-radius: 0 0 60px 60px; margin-top: 28px;
+  }
+  .weights { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; min-height: 54px; }
+  .w {
+    background: #d9c4a0; border-radius: 10px; padding: 8px 10px; font-size: 14px;
+  }
+  .w.fake { background: #f8e4d4; outline: 2px dashed var(--terra); cursor: pointer; }
+  .roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 700px) { .roles { grid-template-columns: 1fr; } }
+  .role { text-align: center; border-radius: 16px; padding: 14px 8px; color: #fff; font-weight: 700; }
+  .nav { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .nav button { min-width: 140px; text-align: center; }
+  .progress { height: 8px; background: #efe3cc; border-radius: 8px; overflow: hidden; margin: 8px 0 14px; }
+  .progress > div { height: 100%; background: var(--gold); width: 0; transition: width .3s; }
+  .note { font-size: 14px; color: #7a6550; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div>兒童主日學 · 第 5 課</div>
+    <div class="stars" id="stars">公義星 ★★★★★</div>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div id="stage"></div>
+</div>
+<script>
+const scenes = [
+  {
+    kind: "intro",
+    title: "阿摩司伸張正義",
+    body: "老師先問：手上的紙筒代表甚麼？對，是權柄。權柄用來保護人，不是用來欺負人。我們一起玩四個小關卡。"
+  },
+  {
+    kind: "match",
+    title: "阿摩司看見甚麼？",
+    prompt: "小朋友大聲說，老師再按答案。",
+    q: "商人把假法碼放在天平上，賣劣質麥子。這是哪一件不公平？",
+    options: ["法庭不公", "假天平欺騙", "一雙涼鞋買人"],
+    answer: 1,
+    why: "麥子用重量計價錢。假天平會騙走買糧的人的錢。"
+  },
+  {
+    kind: "match",
+    title: "阿摩司看見甚麼？",
+    q: "有錢人賄賂法官，明明有錯卻被放走。這是哪一件？",
+    options: ["法庭不公", "假天平欺騙", "一雙涼鞋買人"],
+    answer: 0,
+    why: "上帝在察看。用金錢換走公正，就是欺負弱小。"
+  },
+  {
+    kind: "match",
+    title: "阿摩司看見甚麼？",
+    q: "財主用一雙涼鞋的價錢，把還不起債的人買來。這是哪一件？",
+    options: ["法庭不公", "假天平欺騙", "一雙涼鞋買人"],
+    answer: 2,
+    why: "人不是貨物。阿摩司說：上帝必不忘記這些事。"
+  },
+  {
+    kind: "scale",
+    title: "把天平弄平",
+    body: "左邊多了一個假法碼。請小朋友輪流按「拿走假法碼」，直到天平平平的。"
+  },
+  {
+    kind: "role",
+    title: "你是哪一個角色？",
+    q: "小明搶走弟弟的零食，還說「不給就告你」。小明是？",
+    options: ["欺壓者", "受害者", "旁觀者"],
+    answer: 0,
+    why: "用大、用威脅去搶，就是濫用權柄。"
+  },
+  {
+    kind: "role",
+    title: "你是哪一個角色？",
+    q: "弟弟零食被搶，不敢出聲。弟弟是？",
+    options: ["欺壓者", "受害者", "旁觀者"],
+    answer: 1,
+    why: "被不公平對待的人，需要被保護，不是被嘲笑。"
+  },
+  {
+    kind: "role",
+    title: "你是哪一個角色？",
+    q: "姐姐看見了，可以袖手，也可以幫忙。姐姐現在是？",
+    options: ["欺壓者", "受害者", "旁觀者"],
+    answer: 2,
+    why: "旁觀者可以變成幫助的人。"
+  },
+  {
+    kind: "choice",
+    title: "假如我們是旁觀者",
+    q: "同學被取笑，大家都在笑。你可以怎樣做？",
+    options: ["跟著笑，才不會被針對", "走到他旁邊，並告訴老師"],
+    answer: 1,
+    why: "不傳話、不起哄。可以陪伴，也可以告訴可信的大人。"
+  },
+  {
+    kind: "choice",
+    title: "假如我們是旁觀者",
+    q: "你自己也有點怕。第一步可以做甚麼？",
+    options: ["先向上帝禱告，再找家長或老師", "自己衝上去打人"],
+    answer: 0,
+    why: "維護正義不是用更大的力氣欺負回去。先禱告，再告訴可以信任的成年人。"
+  },
+  {
+    kind: "end",
+    title: "一起讀金句",
+    body: "要恨惡邪惡，喜愛良善，在城門口秉公行義。阿摩司書 5:15"
+  }
+];
+
+let i = 0;
+let stars = 5;
+let fakes = 2;
+const stage = document.getElementById("stage");
+const bar = document.getElementById("bar");
+const starsEl = document.getElementById("stars");
+
+function setStars() {
+  starsEl.textContent = "公義星 " + "★".repeat(Math.max(stars, 0)) + "☆".repeat(Math.max(5 - stars, 0));
+}
+function render() {
+  bar.style.width = Math.round((i / (scenes.length - 1)) * 100) + "%";
+  setStars();
+  const s = scenes[i];
+  if (s.kind === "intro") return intro(s);
+  if (s.kind === "match") return quiz(s, "故事配對");
+  if (s.kind === "scale") return scale(s);
+  if (s.kind === "role") return quiz(s, "三個角色");
+  if (s.kind === "choice") return quiz(s, "維護正義");
+  return end(s);
+}
+function intro(s) {
+  stage.innerHTML = `
+    <h1>${s.title}</h1>
+    <p class="sub">混齡一起玩 · 老師按鍵，小朋友回答</p>
+    <div class="card">
+      <div class="verse">「要恨惡邪惡，喜愛良善，<br>在城門口秉公行義。」</div>
+      <p class="scene">${s.body}</p>
+      <div class="nav"><button class="primary" onclick="next()">開始</button></div>
+    </div>`;
+}
+function quiz(s, tag) {
+  stage.innerHTML = `
+    <h1>${s.title}</h1>
+    <div class="card">
+      <div class="tag">${tag}</div>
+      <p class="scene">${s.q}</p>
+      <div class="grid" id="opts"></div>
+      <div class="feedback" id="fb"></div>
+      <div class="nav"><button id="nextBtn" class="primary" disabled onclick="next()">下一關</button></div>
+    </div>`;
+  const box = document.getElementById("opts");
+  s.options.forEach((text, idx) => {
+    const b = document.createElement("button");
+    b.textContent = text;
+    b.onclick = () => pick(idx, s, box);
+    box.appendChild(b);
+  });
+}
+function pick(idx, s, box) {
+  if (box.dataset.done) return;
+  box.dataset.done = "1";
+  [...box.children].forEach((b, n) => {
+    b.disabled = true;
+    if (n === s.answer) b.style.borderColor = "#3f6b3f";
+    if (n === idx && idx !== s.answer) b.style.borderColor = "#b24a3a";
+  });
+  const fb = document.getElementById("fb");
+  if (idx === s.answer) {
+    fb.className = "feedback ok";
+    fb.textContent = "對了。" + s.why;
+  } else {
+    stars = Math.max(1, stars - 1);
+    setStars();
+    fb.className = "feedback no";
+    fb.textContent = "再想一想。正確是：「" + s.options[s.answer] + "」。" + s.why;
+  }
+  document.getElementById("nextBtn").disabled = false;
+}
+function scale() {
+  fakes = 2;
+  stage.innerHTML = `
+    <h1>把天平弄平</h1>
+    <div class="card">
+      <p class="scene">左邊有劣質麥子，還藏了假法碼。按橙色的假法碼拿走它。</p>
+      <div class="scale-wrap"><div class="scale">
+        <div class="beam" id="beam"></div>
+        <div class="pan left"><div class="weights" id="left"></div><div class="bowl"></div>麥子＋假法碼</div>
+        <div class="pan right"><div class="weights"><span class="w">真法碼</span></div><div class="bowl"></div>公正的一邊</div>
+      </div></div>
+      <div class="feedback" id="fb"></div>
+      <div class="nav"><button id="nextBtn" class="primary" disabled onclick="next()">下一關</button></div>
+      <p class="note">阿摩司書 8:5　以詭詐的天平欺哄人</p>
+    </div>`;
+  drawScale();
+}
+function drawScale() {
+  const left = document.getElementById("left");
+  left.innerHTML = `<span class="w">麥子</span>` + Array.from({length: fakes}, () => `<span class="w fake">假法碼</span>`).join("");
+  const tilt = fakes * 8;
+  document.getElementById("beam").style.transform = `rotate(${-tilt}deg)`;
+  left.querySelectorAll(".fake").forEach(el => el.onclick = () => {
+    fakes -= 1;
+    drawScale();
+    if (fakes === 0) {
+      document.getElementById("fb").className = "feedback ok";
+      document.getElementById("fb").textContent = "天平平了。買賣要誠實，不可以用假重量欺負人。";
+      document.getElementById("nextBtn").disabled = false;
+    }
+  });
+}
+function end(s) {
+  stage.innerHTML = `
+    <h1>${s.title}</h1>
+    <div class="card">
+      <div class="verse">${s.body}</div>
+      <p class="scene">阿摩司是牧人，上帝差他說真話。我們今天也學習：不欺壓人，保護自己，並在有人被欺負時禱告、告訴可信的大人、伸出援手。</p>
+      <div class="verse">親愛的上帝，求你提醒我們，用慈愛和公義待人。奉主名求。阿們。</div>
+      <div class="nav">
+        <button class="gold" onclick="restart()">再玩一次</button>
+      </div>
+    </div>`;
+}
+function next() { i = Math.min(i + 1, scenes.length - 1); render(); }
+function restart() { i = 0; stars = 5; render(); }
+render();
+</script>
+</body>
+</html>
